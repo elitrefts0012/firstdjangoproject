@@ -1,8 +1,10 @@
+
+
 <body>
     <div class="courselist">
         <ol>
             {% for course in all_courses %}
-                <li><a href="/{{course.id}}/">{{course.course_name}}</a></li>
+                <li><a href="{% url 'detail' course.id %}">{{course.course_name}}</a></li>
             {% endfor %}
         </ol>
     </div>

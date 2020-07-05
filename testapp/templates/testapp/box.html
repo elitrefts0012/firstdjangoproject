@@ -2,9 +2,76 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>$Title$</title>
+    <title>Title</title>
 </head>
-<body>
-$END$
+<body id="body">
+    <h1>
+
+    </h1>
+    <div class="box">
+        <h1 class='dvd'>
+            DVD
+        </h1>
+    </div>
+    <script>
+        let box = document.getElementsByClassName('box')[0]
+        let damping = .15
+        let gravity = .025
+        let horizontal_damping = .05
+        let distance_top = 20
+        let vertical_increment = 0
+        let distance_left = 0
+        let increment = 2
+        let window_height = document.getElementById('body').getBoundingClientRect().height
+        let window_width = document.getElementById('body').getBoundingClientRect().width
+        function updatebox() {
+            window_height = document.getElementById('body').getBoundingClientRect().height
+            window_width = document.getElementById('body').getBoundingClientRect().width
+            box.style.left = `${distance_left}px`
+            distance_left += increment
+            if((window_width - box.getBoundingClientRect().right) <= 0){
+                increment = -Math.abs(increment)
+            }
+            else if((box.getBoundingClientRect().left) <= 0){
+                increment = Math.abs(increment)
+            }
+
+            box.style.top = `${distance_top}px`
+            distance_top += vertical_increment
+            vertical_increment += gravity
+            if((window_height - box.getBoundingClientRect().bottom) <= 0){
+                vertical_increment = -Math.abs(vertical_increment)
+                vertical_increment += damping
+                increment -= (increment * horizontal_damping) / Math.abs(increment)
+
+            }
+            else if((box.getBoundingClientRect().top) <= 0){
+                vertical_increment = Math.abs(vertical_increment)
+            }
+
+        }
+            setInterval(updatebox, 1)
+
+    </script>
 </body>
+<style>
+    .dvd {
+        font-size: 8em;
+        text-align: center;
+        margin-top: 70px;
+        margin-bottom: 50px;
+        color: white;
+    }
+    .box {
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background-color: blue;
+    }
+    html,
+    body {
+        background-color: white;
+        height: 100%;
+    }
+</style>
 </html>

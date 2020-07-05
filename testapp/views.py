@@ -24,3 +24,7 @@ def detail(request, course_id):
     }
     return HttpResponse(template.render(context, request))
     #return HttpResponse('<h2>These are the course details for course id: <h2>' +str(course_id) +'</h2>')
+
+def box(request):
+    template=loader.get_template(('testapp/box.html'))
+    return HttpResponse(template.render({}, request))
