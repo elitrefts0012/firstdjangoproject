@@ -11,7 +11,6 @@ def Courses(request):
 
     }
     return HttpResponse(template.render(context, request))
-    # return HttpResponse('<h1>This is the homepage<h1>')
 
 def detail(request, course_id):
     try:
@@ -23,8 +22,11 @@ def detail(request, course_id):
         'course': course,
     }
     return HttpResponse(template.render(context, request))
-    #return HttpResponse('<h2>These are the course details for course id: <h2>' +str(course_id) +'</h2>')
 
 def box(request):
-    template=loader.get_template(('testapp/box.html'))
+    template=loader.get_template('testapp/box.html')
+    return HttpResponse(template.render({}, request))
+
+def box_game(request):
+    template=loader.get_template('testapp/box_game.html')
     return HttpResponse(template.render({}, request))

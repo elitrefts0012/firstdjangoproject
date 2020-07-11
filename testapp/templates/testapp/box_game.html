@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Box Game</title>
+</head>
+<body id="body" onclick="createBox()">
+    <button onclick="startGame()" id="startGame">Start</button>
+{#    <button onclick="createBox()">Create Box</button>#}
+    <script>
+        let boxes = {}
+        let box_id_counter = 0
+        class Box {
+            constructor(id = null, horizontal_velocity = getRndInteger(16, 35), vertical_velocity = getRndInteger(16, 35), distance_top = getRndInteger(0, window_height), distance_left = getRndInteger(0, window_width), color = getRandomColor(), size = getRndInteger(window_width/25, window_width/15)) {
+                this.id = id
+                this.horizontal_velocity = horizontal_velocity
+                this.vertical_velocity = vertical_velocity
+                this.distance_top = distance_top
+                this.distance_left = distance_left
+                this.color = color
+                this.size = size
+            }
+        }
+        let box = document.getElementsByClassName('box')[0]
+        {#let damping = .15#}
+        {#let gravity = .025#}
+        {#let horizontal_damping = .05#}
+        {#let distance_top = null#}
+        {#let vertical_increment = null#}
+        {#let distance_left = null#}
+        {#let horizontal_increment = null#}
+        let window_height = document.getElementById('body').getBoundingClientRect().height
+        let window_width = document.getElementById('body').getBoundingClientRect().width
+        function updatebox() {
+            window_height = document.getElementById('body').getBoundingClientRect().height
+            window_width = document.getElementById('body').getBoundingClientRect().width
+            {#console.log(boxes)#}
+            for (i in boxes) {
+                let box = boxes[i]
+                {#console.log(box)#}
+                box_element = document.getElementById(box.id)
+                box_element.style.left = `${box.distance_left}px`
+                {#console.log(box.distance_left)#}
+                box.distance_left += box.horizontal_velocity
+                {#console.log(box.distance_left)#}
+                if ((window_width - box_element.getBoundingClientRect().right) <= 0) {
+                    box.horizontal_velocity = -Math.abs(box.horizontal_velocity)
+                } else if ((box_element.getBoundingClientRect().left) <= 0) {
+                    box.horizontal_velocity = Math.abs(box.horizontal_velocity)
+                }
+
+                box_element.style.top = `${box.distance_top}px`
+                box.distance_top += box.vertical_velocity
+                {#box.vertical_velocity += gravity#}
+                if ((window_height - box_element.getBoundingClientRect().bottom) <= 0) {
+                    box.vertical_velocity = -Math.abs(box.vertical_velocity)
+                    {#box.vertical_velocity += damping#}
+                    {#box.horizontal_velocity -= (box.horizontal_velocity * horizontal_damping) / Math.abs(box.horizontal_velocity)#}
+
+                } else if ((box_element.getBoundingClientRect().top) <= 0) {
+                    box.vertical_velocity = Math.abs(box.vertical_velocity)
+                }
+            }
+
+        }
+
+        function createBox() {
+            box_id_counter += 1
+            var box = new Box(id = `box${box_id_counter}`)
+            boxes[box.id] = box
+            var box_element = document.createElement('DIV')
+            box_element.id = box.id
+            box_element.addEventListener('mousedown', function () {
+                deleteBox(box.id)
+            })
+            box_element.style.position = 'absolute'
+            box_element.style.top = `${box.distance_top}px`
+            box_element.style.left = `${box.distance_left}px`
+            box_element.style.backgroundColor = `${box.color}`
+            box_element.style.height = `${box.size}px`
+            box_element.style.width = `${box.size}px`
+            document.body.appendChild(box_element)
+            console.log(boxes)
+        }
+
+        function deleteBox(id) {
+            delete boxes[id]
+            let box_element = document.getElementById(id)
+            box_element.parentNode.removeChild(box_element)
+
+        }
+
+        function startGame() {
+            for (let i = 0; i <= 7; i++) {
+                createBox()
+            }
+            start_game_button = document.getElementById('startGame')
+            start_game_button.style.visibility = 'hidden'
+        }
+
+        function getRndInteger(min, max) {
+            return Math.floor(Math.random() * (max - min) ) + min;
+        }
+
+        function getRandomColor() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+        setInterval(updatebox, 16)
+    </script>
+</body>
+<style>
+    #startGame {
+        width: 40%;
+        height: 20%;
+        font-size: 9em;
+        margin-top: 20%;
+        margin-left: 30%;
+    }
+    .box {
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background-color: blue;
+    }
+    html,
+    body {
+        height: 100%;
+    }
+</style>
+</html>

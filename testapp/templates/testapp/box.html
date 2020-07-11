@@ -21,19 +21,19 @@
         let distance_top = 20
         let vertical_increment = 0
         let distance_left = 0
-        let increment = 2
+        let horizontal_increment = 2
         let window_height = document.getElementById('body').getBoundingClientRect().height
         let window_width = document.getElementById('body').getBoundingClientRect().width
         function updatebox() {
             window_height = document.getElementById('body').getBoundingClientRect().height
             window_width = document.getElementById('body').getBoundingClientRect().width
             box.style.left = `${distance_left}px`
-            distance_left += increment
+            distance_left += horizontal_increment
             if((window_width - box.getBoundingClientRect().right) <= 0){
-                increment = -Math.abs(increment)
+                horizontal_increment = -Math.abs(horizontal_increment)
             }
             else if((box.getBoundingClientRect().left) <= 0){
-                increment = Math.abs(increment)
+                horizontal_increment = Math.abs(horizontal_increment)
             }
 
             box.style.top = `${distance_top}px`
@@ -42,7 +42,7 @@
             if((window_height - box.getBoundingClientRect().bottom) <= 0){
                 vertical_increment = -Math.abs(vertical_increment)
                 vertical_increment += damping
-                increment -= (increment * horizontal_damping) / Math.abs(increment)
+                horizontal_increment -= (horizontal_increment * horizontal_damping) / Math.abs(horizontal_increment)
 
             }
             else if((box.getBoundingClientRect().top) <= 0){
