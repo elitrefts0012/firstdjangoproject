@@ -1,17 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <meta charset="UTF-8">
     <title>Box Game</title>
 </head>
-<body id="body" onclick="createBox()">
+<body id="body" onclick="createBox()" onload="console.log('page loaded')">
     <button onclick="startGame()" id="startGame">Start</button>
 {#    <button onclick="createBox()">Create Box</button>#}
     <script>
         let boxes = {}
         let box_id_counter = 0
         class Box {
-            constructor(id = null, horizontal_velocity = getRndInteger(16, 35), vertical_velocity = getRndInteger(16, 35), distance_top = getRndInteger(0, window_height), distance_left = getRndInteger(0, window_width), color = getRandomColor(), size = getRndInteger(window_width/25, window_width/15)) {
+            constructor(id = null, horizontal_velocity = getRndInteger(16, 35), vertical_velocity = getRndInteger(16, 35), distance_top = getRndInteger(0, window_height), distance_left = getRndInteger(0, window_width), color = getRandomColor(), size = getRndInteger(Math.floor(window_width/25), window_width/15)) {
                 this.id = id
                 this.horizontal_velocity = horizontal_velocity
                 this.vertical_velocity = vertical_velocity
@@ -37,6 +38,7 @@
             {#console.log(boxes)#}
             for (i in boxes) {
                 let box = boxes[i]
+                {#console.log(box.color)#}
                 {#console.log(box)#}
                 box_element = document.getElementById(box.id)
                 box_element.style.left = `${box.distance_left}px`
@@ -64,6 +66,23 @@
 
         }
 
+        function loaded() {
+            get_box_id_counter()
+            axios.get()
+        }
+
+        function get_box_id_counter() {
+            var box_key_list = Object.keys(boxes)
+
+            for (i in box_key_list) {
+                box_key_list[i] = parseInt(box_key_list[i].slice(3))
+                if (box_id_counter < box_key_list[i]) {
+                    box_id_counter = box_key_list[i]
+                }
+            }
+
+        }
+
         function createBox() {
             box_id_counter += 1
             var box = new Box(id = `box${box_id_counter}`)
@@ -80,7 +99,6 @@
             box_element.style.height = `${box.size}px`
             box_element.style.width = `${box.size}px`
             document.body.appendChild(box_element)
-            console.log(boxes)
         }
 
         function deleteBox(id) {
