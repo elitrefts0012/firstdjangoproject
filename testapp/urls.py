@@ -7,5 +7,5 @@ urlpatterns = [
     path('<int:course_id>/', views.detail, name='detail'),
     path('box', views.box, name='box'),
     path('box_game', views.box_game, name='box_game'),
-
+    path('tank_game', views.tank_game, name='tank_game'),
 ]

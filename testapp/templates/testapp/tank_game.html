@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tank Game</title>
+</head>
+<body id="body">
+    <button onclick="create_tank()" id="startGame">Start</button>
+    <script>
+        let tanks = {}
+        let tank_id_counter = 0
+        let bullets = {}
+        let bullet_id_counter = 0
+        class Tank {
+            constructor(id = null, horizontal_velocity = 0, vertical_velocity = 0, distance_top = 1, distance_left = 1, color = '#0C71E0', size = '90'){
+                this.id = id
+                this.horizontal_velocity = horizontal_velocity
+                this.vertical_velocity = vertical_velocity
+                this.distance_top = distance_top
+                this.distance_left = distance_left
+                this.color = color
+                this.size = size
+            }
+        }
+        class Bullet {
+            constructor(tank, mousex, mousey, id = null,color = '#ff0000', size = '10') {
+                this.id = id
+                this.tank = tank
+                this.horizontal_velocity = 3*(mousex - this.tank.distance_left) / (Math.abs(mousey - this.tank.distance_top) + Math.abs(mousex - this.tank.distance_left))
+                this.vertical_velocity = 3*(mousey - this.tank.distance_top) / (Math.abs(mousex - this.tank.distance_left) + Math.abs(mousey - this.tank.distance_top))
+                this.distance_top = this.tank.distance_top + (this.tank.size/2)
+                this.distance_left = this.tank.distance_left + (this.tank.size/2)
+                this.color = color
+                this.size = size
+            }
+        }
+        let tank = document.getElementsByClassName('Tank')[0]
+        let window_height = document.getElementById('body').getBoundingClientRect().height
+        let window_width = document.getElementById('body').getBoundingClientRect().width
+        function updatetank() {
+            window_height = document.getElementById('body').getBoundingClientRect().height
+            window_width = document.getElementById('body').getBoundingClientRect().width
+            for (i in tanks) {
+                console.log(i)
+                let tank = tanks['tank1']
+                tank_element = document.getElementById(tank.id)
+                tank_element.style.left = `${tank.distance_left}px`
+                tank.distance_left += tank.horizontal_velocity
+                tank_element.style.top = `${tank.distance_top}px`
+                tank.distance_top += tank.vertical_velocity
+                if ((window_width - tank_element.getBoundingClientRect().right) <= 0) {
+                    tank_element.getBoundingClientRect().right = 0
+                } else if ((tank_element.getBoundingClientRect().left) <= 0) {
+                    tank_element.getBoundingClientRect().left = 0
+                }
+                if ((window_height - tank_element.getBoundingClientRect().bottom) <= 0) {
+                    tank_element.getBoundingClientRect().bottom = 0
+                } else if ((tank_element.getBoundingClientRect().top) <= 0) {
+                    tank_element.getBoundingClientRect().top = 0
+                }
+            }
+        }
+        function updatebullet() {
+            window_height = document.getElementById('body').getBoundingClientRect().height
+            window_width = document.getElementById('body').getBoundingClientRect().width
+            for (i in bullets) {
+                let bullet = bullets[i]
+                bullet_element = document.getElementById(bullet.id)
+                bullet_element.style.left = `${bullet.distance_left}px`
+                bullet.distance_left += bullet.horizontal_velocity
+                bullet_element.style.top = `${bullet.distance_top}px`
+                bullet.distance_top += bullet.vertical_velocity
+                if ((window_width - bullet_element.getBoundingClientRect().right) <= 0) {
+                    bullet_element.getBoundingClientRect().right = 0
+                } else if ((bullet_element.getBoundingClientRect().left) <= 0) {
+                    bullet_element.getBoundingClientRect().left = 0
+                }
+                if ((window_height - bullet_element.getBoundingClientRect().bottom) <= 0) {
+                    bullet_element.getBoundingClientRect().bottom = 0
+                } else if ((bullet_element.getBoundingClientRect().top) <= 0) {
+                    bullet_element.getBoundingClientRect().top = 0
+                }
+            }
+        }
+        document.getElementById('body').addEventListener('keydown', function(event) {
+            for (i in tanks){
+                tank = tanks[i]
+            }
+            let x = event.keyCode
+            if (x == 87) {
+                tank.vertical_velocity = -5
+            }
+            else if (x == 65) {
+                tank.horizontal_velocity = -5
+            }
+            else if (x == 83) {
+                tank.vertical_velocity = 5
+            }
+            else if (x == 68) {
+                tank.horizontal_velocity = 5
+            }
+        })
+        document.getElementById('body').addEventListener('keyup', function(event) {
+            let y = event.keyCode
+            if (y == 87) {
+                tank.vertical_velocity = 0
+            }
+            else if (y == 65) {
+                tank.horizontal_velocity = 0
+            }
+            else if (y == 83) {
+                tank.vertical_velocity = 0
+            }
+            else if (y == 68) {
+                tank.horizontal_velocity = 0
+            }
+        })
+        document.getElementById('body').addEventListener('mousedown', function(event) {
+            let mousex = event.clientX
+            let mousey = event.clientY
+            fire_tank(tank, mousex, mousey)
+        })
+        function get_tank_id_counter() {
+            var tank_key_list = Object.keys(tanks)
+            for (i in tank_key_list) {
+                tank_key_list[i] = parseInt(tank_key_list[i].slice(3))
+                if (tank_id_counter < tank_key_list[i]) {
+                    tank_id_counter = tank_key_list[i]
+                }
+            }
+
+        }
+        function create_tank() {
+            tank_id_counter += 1
+            var tank = new Tank(id = `tank${tank_id_counter}`)
+            tanks[tank.id] = tank
+            var tank_element = document.createElement('DIV')
+            tank_element.id = tank.id
+            tank_element.style.position = 'absolute'
+            tank_element.style.top = `${tank.distance_top}px`
+            tank_element.style.left = `${tank.distance_left}px`
+            tank_element.style.backgroundColor = `${tank.color}`
+            tank_element.style.height = `${tank.size}px`
+            tank_element.style.width = `${tank.size}px`
+            document.body.appendChild(tank_element)
+            start_game_button = document.getElementById('startGame')
+            start_game_button.style.visibility = 'hidden'
+            console.log(tanks)
+            setInterval(updatetank, 10)
+        }
+        function fire_tank(tank, mousex, mousey) {
+            bullet_id_counter += 1
+            var bullet = new Bullet(tank, mousex, mousey, id = `bullet${bullet_id_counter}`)
+            bullets[bullet.id] = bullet
+            var bullet_element = document.createElement('DIV')
+            bullet_element.id = bullet.id
+            bullet_element.style.position = 'absolute'
+            bullet_element.style.top = `${bullet.distance_top}px`
+            bullet_element.style.left = `${bullet.distance_left}px`
+            bullet_element.style.backgroundColor = `${bullet.color}`
+            bullet_element.style.height = `${bullet.size}px`
+            bullet_element.style.width = `${bullet.size}px`
+            document.body.appendChild(bullet_element)
+        }
+        function delete_tank(id) {
+            delete tanks[id]
+            let tank_element = document.getElementById(id)
+            tank_element.parentNode.removeChild(tank_element)
+
+        }
+        function getRndInteger(min, max) {
+            return Math.floor(Math.random() * (max - min) ) + min;
+        }
+            setInterval(updatebullet, 10)
+    </script>
+</body>
+<style>
+    #startGame {
+        width: 40%;
+        height: 20%;
+        font-size: 9em;
+        margin-top: 20%;
+        margin-left: 30%;
+    }
+    .tank {
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background-color: #0000ff;
+    }
+    html,
+    body {
+        height: 100%;
+    }
+</style>
+</html>

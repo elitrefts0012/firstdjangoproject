@@ -30,3 +30,7 @@ def box(request):
 def box_game(request):
     template=loader.get_template('testapp/box_game.html')
     return HttpResponse(template.render({}, request))
+
+def tank_game(request):
+    template=loader.get_template('testapp/tank_game.html')
+    return HttpResponse(template.render({}, request))
