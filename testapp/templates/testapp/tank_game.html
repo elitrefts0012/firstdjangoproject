@@ -26,8 +26,8 @@
             constructor(tank, mousex, mousey, id = null,color = '#ff0000', size = '10') {
                 this.id = id
                 this.tank = tank
-                this.horizontal_velocity = 3*(mousex - this.tank.distance_left) / (Math.abs(mousey - this.tank.distance_top) + Math.abs(mousex - this.tank.distance_left))
-                this.vertical_velocity = 3*(mousey - this.tank.distance_top) / (Math.abs(mousex - this.tank.distance_left) + Math.abs(mousey - this.tank.distance_top))
+                this.horizontal_velocity = 9*(mousex - this.tank.distance_left) / (Math.abs(mousey - this.tank.distance_top) + Math.abs(mousex - this.tank.distance_left))
+                this.vertical_velocity = 9*(mousey - this.tank.distance_top) / (Math.abs(mousex - this.tank.distance_left) + Math.abs(mousey - this.tank.distance_top))
                 this.distance_top = this.tank.distance_top + (this.tank.size/2)
                 this.distance_left = this.tank.distance_left + (this.tank.size/2)
                 this.color = color

@@ -5,14 +5,13 @@
     <meta charset="UTF-8">
     <title>Box Game</title>
 </head>
-<body id="body" onclick="createBox()" onload="console.log('page loaded')">
+<body id="body" onclick="createBox()">
     <button onclick="startGame()" id="startGame">Start</button>
-{#    <button onclick="createBox()">Create Box</button>#}
     <script>
         let boxes = {}
-        let box_id_counter = 0
+        let box_id_counter = -1
         class Box {
-            constructor(id = null, horizontal_velocity = getRndInteger(16, 35), vertical_velocity = getRndInteger(16, 35), distance_top = getRndInteger(0, window_height), distance_left = getRndInteger(0, window_width), color = getRandomColor(), size = getRndInteger(Math.floor(window_width/25), window_width/15)) {
+            constructor(id = null, horizontal_velocity = getRndInteger(-35, 35), vertical_velocity = getRndInteger(-35, 35), distance_top = getRndInteger(2, window_height-2), distance_left = getRndInteger(2, window_width-2), color = getRandomColor(), size = getRndInteger(Math.floor(window_width/25), window_width/15)) {
                 this.id = id
                 this.horizontal_velocity = horizontal_velocity
                 this.vertical_velocity = vertical_velocity
@@ -23,43 +22,28 @@
             }
         }
         let box = document.getElementsByClassName('box')[0]
-        {#let damping = .15#}
-        {#let gravity = .025#}
-        {#let horizontal_damping = .05#}
-        {#let distance_top = null#}
-        {#let vertical_increment = null#}
-        {#let distance_left = null#}
-        {#let horizontal_increment = null#}
         let window_height = document.getElementById('body').getBoundingClientRect().height
         let window_width = document.getElementById('body').getBoundingClientRect().width
         function updatebox() {
             window_height = document.getElementById('body').getBoundingClientRect().height
             window_width = document.getElementById('body').getBoundingClientRect().width
-            {#console.log(boxes)#}
             for (i in boxes) {
                 let box = boxes[i]
-                {#console.log(box.color)#}
-                {#console.log(box)#}
                 box_element = document.getElementById(box.id)
                 box_element.style.left = `${box.distance_left}px`
-                {#console.log(box.distance_left)#}
                 box.distance_left += box.horizontal_velocity
-                {#console.log(box.distance_left)#}
-                if ((window_width - box_element.getBoundingClientRect().right) <= 0) {
+                if ((window_width - box_element.getBoundingClientRect().right) <= 10) {
                     box.horizontal_velocity = -Math.abs(box.horizontal_velocity)
-                } else if ((box_element.getBoundingClientRect().left) <= 0) {
+                } else if ((box_element.getBoundingClientRect().left) <= 10) {
                     box.horizontal_velocity = Math.abs(box.horizontal_velocity)
                 }
 
                 box_element.style.top = `${box.distance_top}px`
                 box.distance_top += box.vertical_velocity
-                {#box.vertical_velocity += gravity#}
-                if ((window_height - box_element.getBoundingClientRect().bottom) <= 0) {
+                if ((window_height - box_element.getBoundingClientRect().bottom) <= 10) {
                     box.vertical_velocity = -Math.abs(box.vertical_velocity)
-                    {#box.vertical_velocity += damping#}
-                    {#box.horizontal_velocity -= (box.horizontal_velocity * horizontal_damping) / Math.abs(box.horizontal_velocity)#}
 
-                } else if ((box_element.getBoundingClientRect().top) <= 0) {
+                } else if ((box_element.getBoundingClientRect().top) <= 10) {
                     box.vertical_velocity = Math.abs(box.vertical_velocity)
                 }
             }
@@ -80,10 +64,12 @@
                     box_id_counter = box_key_list[i]
                 }
             }
-
         }
 
         function createBox() {
+            if (box_id_counter < 0) {
+                return
+            }
             box_id_counter += 1
             var box = new Box(id = `box${box_id_counter}`)
             boxes[box.id] = box
@@ -109,7 +95,8 @@
         }
 
         function startGame() {
-            for (let i = 0; i <= 7; i++) {
+            box_id_counter = 0
+            for (let i = 0; i <= 6; i++) {
                 createBox()
             }
             start_game_button = document.getElementById('startGame')

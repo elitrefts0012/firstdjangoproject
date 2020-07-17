@@ -3,6 +3,11 @@ from django.http import HttpResponse, Http404
 from .models import Course
 from django.template import loader
 
+
+def projects(request):
+    template=loader.get_template('testapp/projects.html')
+    return HttpResponse(template.render({}, request))
+
 def Courses(request):
     ac=Course.objects.all()
     template=loader.get_template('testapp/Courses.html')
