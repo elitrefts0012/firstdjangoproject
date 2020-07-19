@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <meta charset="UTF-8">
     <title>Box Game</title>
 </head>
 <body id="body" onclick="createBox()">
-    <button onclick="startGame()" id="startGame">Start</button>
-    <script>
+<button onclick="startGame()" id="startGame">Start</button>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
         let boxes = {}
         let box_id_counter = -1
         class Box {
             constructor(id = null, horizontal_velocity = getRndInteger(-35, 35), vertical_velocity = getRndInteger(-35, 35), distance_top = getRndInteger(2, window_height-2), distance_left = getRndInteger(2, window_width-2), color = getRandomColor(), size = getRndInteger(Math.floor(window_width/25), window_width/15)) {
-                this.id = id
+                this.box_id = box_id
                 this.horizontal_velocity = horizontal_velocity
                 this.vertical_velocity = vertical_velocity
                 this.distance_top = distance_top
@@ -29,7 +29,7 @@
             window_width = document.getElementById('body').getBoundingClientRect().width
             for (i in boxes) {
                 let box = boxes[i]
-                box_element = document.getElementById(box.id)
+                box_element = document.getElementById(box.box_id)
                 box_element.style.left = `${box.distance_left}px`
                 box.distance_left += box.horizontal_velocity
                 if ((window_width - box_element.getBoundingClientRect().right) <= 10) {
@@ -50,11 +50,6 @@
 
         }
 
-        function loaded() {
-            get_box_id_counter()
-            axios.get()
-        }
-
         function get_box_id_counter() {
             var box_key_list = Object.keys(boxes)
 
@@ -66,17 +61,20 @@
             }
         }
 
-        function createBox() {
-            if (box_id_counter < 0) {
-                return
-            }
+        function createBox(box = null) {
+            {#if (box_id_counter < 0) {#}
+            {#    return#}
+            {#}#}
             box_id_counter += 1
-            var box = new Box(id = `box${box_id_counter}`)
-            boxes[box.id] = box
+            if (box == null) {
+                var box = new Box(box_id = `box${box_id_counter}`)
+            }
+            console.log
+            boxes[box.box_id] = box
             var box_element = document.createElement('DIV')
-            box_element.id = box.id
+            box_element.id = box.box_id
             box_element.addEventListener('mousedown', function () {
-                deleteBox(box.id)
+                deleteBox(box.box_id)
             })
             box_element.style.position = 'absolute'
             box_element.style.top = `${box.distance_top}px`
@@ -95,12 +93,30 @@
         }
 
         function startGame() {
-            box_id_counter = 0
-            for (let i = 0; i <= 6; i++) {
-                createBox()
+            api_get().then(resp => {
+                for (i in resp) {
+                    createBox(resp[i])
+                    console.log(resp[i])
+                }
+            })
+            if (boxes.length <= 0){
+                box_id_counter = 0
+                for (let i = 0; i < 6; i++) {
+                    createBox()
+                    console.log(1)
+                }
+                start_game_button = document.getElementByid('startGame')
+                start_game_button.style.visibility = 'hidden'
             }
-            start_game_button = document.getElementById('startGame')
-            start_game_button.style.visibility = 'hidden'
+        }
+
+        async function api_get() {
+            let resp = await axios.get('http://localhost:8000/api/box/')
+            return resp.data
+        }
+
+        function api_post(box) {
+
         }
 
         function getRndInteger(min, max) {
