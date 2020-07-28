@@ -4,17 +4,20 @@
     <meta charset="UTF-8">
     <title>Box Game</title>
 </head>
-<body id="body">
-<button onclick="startGame()" id="startGame">Start</button>
-<button onclick="createBox()">Create Box</button>
-<button onclick="api_put()" id="Put">Save</button>
-<button onclick="api_wipe()" id="Wipe">Reset</button>
+<body id="body" onload="load_boxes()" onclick="createBox()">
+<div onclick="stopClick()">
+    <button onclick="startGame()" id="startGame">Start</button>
+    <button onclick="createBox()">Create Box</button>
+    <button onclick="api_get()" id="Put">Get</button>
+    <button onclick="api_wipe()" id="Wipe">Reset</button>
+    <button onclick="updatebox(event)">Update Box</button>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-        let boxes = {}
+        let boxes = []
         let box_id_counter = -1
         class Box {
-            constructor(id = null, horizontal_velocity = getRndInteger(-35, 35), vertical_velocity = getRndInteger(-35, 35), distance_top = getRndInteger(2, window_height-2), distance_left = getRndInteger(2, window_width-2), color = getRandomColor(), size = getRndInteger(Math.floor(window_width/25), window_width/15)) {
+            constructor(id = 'temp', horizontal_velocity = getRndInteger(-10, 10), vertical_velocity = getRndInteger(-10, 10), distance_top = getRndInteger(2, window_height-2), distance_left = getRndInteger(2, window_width-2), color = getRandomColor(), size = getRndInteger(Math.floor(window_width/20), window_width/15)) {
                 this.id = id
                 this.horizontal_velocity = horizontal_velocity
                 this.vertical_velocity = vertical_velocity
@@ -26,12 +29,11 @@
         }
         let window_height = document.getElementById('body').getBoundingClientRect().height
         let window_width = document.getElementById('body').getBoundingClientRect().width
-        function updatebox() {
-            console.log(boxes)
+        function updatebox(e) {
+            e.stopPropagation()
             window_height = document.getElementById('body').getBoundingClientRect().height
             window_width = document.getElementById('body').getBoundingClientRect().width
-            for (i in boxes) {
-                let box = boxes[i]
+            for (box of boxes) {
                 box_element = document.getElementById(box.id)
                 box_element.style.left = `${box.distance_left}px`
                 box.distance_left += box.horizontal_velocity
@@ -54,20 +56,15 @@
         }
 
         function createBox(box = null) {
-            let test = null
-            if (box == null) {
-                let box = new Box()
-            }
-            api_put(box)
-            {#api_post(box)#}
-            boxes = api_get()
-            api_get().then(resp => test = resp)
-            console.log(test)
+            event.stopPropagation()
             let box_element = document.createElement('DIV')
+            if (box == null) {
+                box = new Box()
+                api_post(box, box_element)
+                boxes.push(box)
+            }
             box_element.id = box.id
-            box_element.addEventListener('mousedown', function () {
-                deleteBox(box.id)
-            })
+            box_element.innerHTML = box_element.id
             box_element.style.position = 'absolute'
             box_element.style.top = `${box.distance_top}px`
             box_element.style.left = `${box.distance_left}px`
@@ -75,68 +72,67 @@
             box_element.style.height = `${box.size}px`
             box_element.style.width = `${box.size}px`
             document.body.appendChild(box_element)
+            box_element.addEventListener('mousedown', function () {
+                deleteBox(box)
+            })
             }
 
-        function deleteBox(id) {
-            delete boxes[id]
-            let box_element = document.getElementById(`${id}`)
+        function deleteBox(box) {
+            let box_element = document.getElementById(`${box.id}`)
+            axios.delete(`http://localhost:8000/api/box/${box.id}`)
             box_element.parentNode.removeChild(box_element)
-            axios.delete(`http://localhost:8000/api/box/${id}`)
+            let box_index = boxes.indexOf(box)
+            boxes.splice(box_index, 1)
+        }
+
+        function stopClick() {
+
         }
 
         function startGame() {
-            api_get().then(resp => {
-                for (i in resp) {
-                    createBox(resp[i])
-                }
-            })
+            event.stopPropagation()
+            for (i of boxes) {
+                createBox(i)
+            }
             if (boxes.length <= 0){
                 box_id_counter = 0
-                for (let i = 0; i < 6; i++) {
+                for (let i = 0; i < 15; i++) {
                     createBox()
                 }
             }
+            setInterval(updatebox, 10)
             start_game_button = document.getElementById('startGame')
             start_game_button.style.visibility = 'hidden'
         }
 
+        async function load_boxes() {
+            boxes = await api_get()
+            console.log(boxes)
+        }
+
         async function api_get() {
+            event.stopPropagation()
             let resp = await axios.get('http://localhost:8000/api/box/')
             return resp.data
         }
 
         function api_wipe() {
-            api_get().then(resp => {
-                for (i in resp) {
-                    {#console.log(resp[i].id)#}
-                    id = resp[i].id
-                    axios.delete(`http://localhost:8000/api/box/${id}`)
-                    if (boxes.length > 1) {
-                        delete boxes[id]
-                        let box_element = document.getElementById(`${id}`)
-                        box_element.parentNode.removeChild(box_element)
-                    }
-                }
-            })
-        }
-
-        function api_remove(box) {
-            id = i
-            console.log(id)
-        }
-
-        function api_delete(box) {
-
-        }
-
-        function api_post(box) {
-            let data = axios.post('http://localhost:8000/api/box/', box)
-        }
-
-        function api_put(box) {
-            for (i in boxes) {
-                let data = axios.put(`http://localhost:8000/api/box/${boxes[i].id}`, boxes[i])
+            event.stopPropagation()
+            for (box of boxes) {
+                let box_element = document.getElementById(`${box.id}`)
+                axios.delete(`http://localhost:8000/api/box/${box.id}`)
+                box_element.parentNode.removeChild(box_element)
             }
+            boxes = []
+        }
+
+        async function api_post(box, box_element) {
+            let post_data = Object.assign({}, box)
+            delete post_data.id
+            let resp = await axios.post('http://localhost:8000/api/box/', post_data)
+            box.id = resp.data.id
+            box_element.id = resp.data.id
+            box_element.innerHTML = box_element.id
         }
 
         function getRndInteger(min, max) {
@@ -151,10 +147,13 @@
             }
             return color;
         }
-        setInterval(updatebox, 20000)
     </script>
 </body>
 <style>
+    div {
+        color: white;
+        font-weight: bold;
+    }
     #startGame {
         width: 40%;
         height: 20%;
