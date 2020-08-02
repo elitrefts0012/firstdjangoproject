@@ -1,5 +1,8 @@
+from django.conf import settings
 from django.shortcuts import render
 from django.http import HttpResponse, Http404
+
+from api.models import LeaderBoardRecord
 from .models import Course
 from django.template import loader
 
@@ -7,6 +10,7 @@ from django.template import loader
 def projects(request):
     template=loader.get_template('testapp/projects.html')
     return HttpResponse(template.render({}, request))
+
 
 def Courses(request):
     ac=Course.objects.all()
@@ -16,6 +20,7 @@ def Courses(request):
 
     }
     return HttpResponse(template.render(context, request))
+
 
 def detail(request, course_id):
     try:
@@ -28,13 +33,20 @@ def detail(request, course_id):
     }
     return HttpResponse(template.render(context, request))
 
+
 def box(request):
     template=loader.get_template('testapp/box.html')
     return HttpResponse(template.render({}, request))
 
+
 def box_game(request):
     template=loader.get_template('testapp/box_game.html')
-    return HttpResponse(template.render({}, request))
+    context = {
+        'records': LeaderBoardRecord.objects.all().order_by('time_minutes', 'time_seconds', 'time_hundredths')[:15],
+        'HOSTNAME': settings.HOSTNAME,
+    }
+    return HttpResponse(template.render(context, request))
+
 
 def tank_game(request):
     template=loader.get_template('testapp/tank_game.html')

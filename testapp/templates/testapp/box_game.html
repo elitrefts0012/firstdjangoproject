@@ -5,151 +5,255 @@
     <title>Box Game</title>
 </head>
 <body id="body" onload="load_boxes()" onclick="createBox()">
+<h1 id="timer">0:00</h1>
 <div onclick="stopClick()">
     <button onclick="startGame()" id="startGame">Start</button>
-    <button onclick="createBox()">Create Box</button>
-    <button onclick="api_get()" id="Put">Get</button>
+{#    <button onclick="createBox()">Create Box</button>#}
+{#    <button onclick="api_get()" id="Put">Get</button>#}
     <button onclick="api_wipe()" id="Wipe">Reset</button>
-    <button onclick="updatebox(event)">Update Box</button>
+{#    <button onclick="updatebox(event)">Update Box</button>#}
+</div>
+<div id="leader-board">
+    {% for record in records %}
+        <div>
+            <div style="display: flex;">
+                <p class="record-username">{{ record.player_username }}</p>
+                <p style="width: 50%">{{ record.time_minutes }}:{{ record.time_seconds }}.{{ record.time_hundredths }}</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+<div id="modal">
+    <form action="" style="place-items: center; width: 70%; margin-top: 20%; padding-left: 30%">
+        <label for="">Username:</label>
+        <input id="username-input" type="text">
+        <p id="last-time"></p>
+        <button id="submit-time" onclick="submit_time(event)" onsubmit="return false">submit</button>
+    </form>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-        let boxes = []
-        let box_id_counter = -1
-        class Box {
-            constructor(id = 'temp', horizontal_velocity = getRndInteger(-10, 10), vertical_velocity = getRndInteger(-10, 10), distance_top = getRndInteger(2, window_height-2), distance_left = getRndInteger(2, window_width-2), color = getRandomColor(), size = getRndInteger(Math.floor(window_width/20), window_width/15)) {
-                this.id = id
-                this.horizontal_velocity = horizontal_velocity
-                this.vertical_velocity = vertical_velocity
-                this.distance_top = distance_top
-                this.distance_left = distance_left
-                this.color = color
-                this.size = size
-            }
+    let start_check = 0
+    let box_id_counter = -1
+    let time_minutes = 0
+    let time_seconds = 0
+    let time_hundredths = 0
+    let boxes = []
+    class Box {
+        constructor(id = 'temp', horizontal_velocity = getRndInteger(-10, 10), vertical_velocity = getRndInteger(-10, 10), distance_top = getRndInteger(2, window_height-2), distance_left = getRndInteger(2, window_width-2), color = getRandomColor(), size = getRndInteger(Math.floor(window_width/20), window_width/15)) {
+            this.id = id
+            this.horizontal_velocity = horizontal_velocity
+            this.vertical_velocity = vertical_velocity
+            this.distance_top = distance_top
+            this.distance_left = distance_left
+            this.color = color
+            this.size = size
         }
-        let window_height = document.getElementById('body').getBoundingClientRect().height
-        let window_width = document.getElementById('body').getBoundingClientRect().width
-        function updatebox(e) {
-            e.stopPropagation()
-            window_height = document.getElementById('body').getBoundingClientRect().height
-            window_width = document.getElementById('body').getBoundingClientRect().width
-            for (box of boxes) {
-                box_element = document.getElementById(box.id)
-                box_element.style.left = `${box.distance_left}px`
-                box.distance_left += box.horizontal_velocity
-                if ((window_width - box_element.getBoundingClientRect().right) <= 10) {
-                    box.horizontal_velocity = -Math.abs(box.horizontal_velocity)
-                } else if ((box_element.getBoundingClientRect().left) <= 10) {
-                    box.horizontal_velocity = Math.abs(box.horizontal_velocity)
-                }
-
-                box_element.style.top = `${box.distance_top}px`
-                box.distance_top += box.vertical_velocity
-                if ((window_height - box_element.getBoundingClientRect().bottom) <= 10) {
-                    box.vertical_velocity = -Math.abs(box.vertical_velocity)
-
-                } else if ((box_element.getBoundingClientRect().top) <= 10) {
-                    box.vertical_velocity = Math.abs(box.vertical_velocity)
-                }
-            }
-
+    }
+    let window_height = document.getElementById('body').getBoundingClientRect().height
+    let window_width = document.getElementById('body').getBoundingClientRect().width
+    function updatebox(e) {
+        if (start_check == 0) {
+            return
         }
-
-        function createBox(box = null) {
-            event.stopPropagation()
-            let box_element = document.createElement('DIV')
-            if (box == null) {
-                box = new Box()
-                api_post(box, box_element)
-                boxes.push(box)
-            }
-            box_element.id = box.id
-            box_element.innerHTML = box_element.id
-            box_element.style.position = 'absolute'
-            box_element.style.top = `${box.distance_top}px`
+        if (boxes.length == 0) {
+            start_check = 0
+            document.getElementById('leader-board').style.visibility = 'visible'
+        }
+        window_height = document.getElementById('body').getBoundingClientRect().height
+        window_width = document.getElementById('body').getBoundingClientRect().width
+        for (box of boxes) {
+            box_element = document.getElementById(box.id)
             box_element.style.left = `${box.distance_left}px`
-            box_element.style.backgroundColor = `${box.color}`
-            box_element.style.height = `${box.size}px`
-            box_element.style.width = `${box.size}px`
-            document.body.appendChild(box_element)
-            box_element.addEventListener('mousedown', function () {
-                deleteBox(box)
-            })
+            box.distance_left += box.horizontal_velocity
+            if ((window_width - box_element.getBoundingClientRect().right) <= 10) {
+                box.horizontal_velocity = -Math.abs(box.horizontal_velocity)
+            } else if ((box_element.getBoundingClientRect().left) <= 10) {
+                box.horizontal_velocity = Math.abs(box.horizontal_velocity)
             }
 
-        function deleteBox(box) {
+            box_element.style.top = `${box.distance_top}px`
+            box.distance_top += box.vertical_velocity
+            if ((window_height - box_element.getBoundingClientRect().bottom) <= 10) {
+                box.vertical_velocity = -Math.abs(box.vertical_velocity)
+
+            } else if ((box_element.getBoundingClientRect().top) <= 10) {
+                box.vertical_velocity = Math.abs(box.vertical_velocity)
+            }
+        }
+
+    }
+
+    function timer() {
+        let time_string = ''
+        if (time_seconds > 9) {
+            time_string = `${time_minutes}:${time_seconds}.${time_hundredths}`
+        } else {
+            time_string = `${time_minutes}:0${time_seconds}.${time_hundredths}`
+        }
+        if (boxes.length > 0) {
+            ++time_hundredths
+            if (time_hundredths > 99) {
+                ++time_seconds
+                time_hundredths = 0
+            }
+            if (time_seconds > 59) {
+                ++time_minutes
+                time_seconds = 0
+            }
+            timer = document.getElementById('timer')
+            timer.innerHTML = time_string
+        } else if (boxes.length == 0) {
+            let lasttime = document.getElementById('last-time')
+            let modal = document.getElementById('modal')
+            lasttime.innerHTML = time_string
+            modal.style.visibility = 'visible'
+        }
+    }
+
+    function createBox(box = null) {
+        if (start_check == 0) {
+            return
+        }
+        let box_element = document.createElement('DIV')
+        if (box == null) {
+            box = new Box()
+            api_post(box, box_element)
+            boxes.push(box)
+        }
+        box_element.id = box.id
+        box_element.innerHTML = box_element.id
+        box_element.style.position = 'absolute'
+        box_element.style.top = `${box.distance_top}px`
+        box_element.style.left = `${box.distance_left}px`
+        box_element.style.backgroundColor = `${box.color}`
+        box_element.style.height = `${box.size}px`
+        box_element.style.width = `${box.size}px`
+        document.body.appendChild(box_element)
+        box_element.addEventListener('mousedown', function () {
+            deleteBox(box)
+        })
+    }
+
+    function deleteBox(box) {
+        let box_element = document.getElementById(`${box.id}`)
+        axios.delete(`http://{{HOSTNAME}}:8000/api/box/${box.id}`)
+        box_element.parentNode.removeChild(box_element)
+        let box_index = boxes.indexOf(box)
+        boxes.splice(box_index, 1)
+    }
+
+    function startGame() {
+        document.getElementById('leader-board').style.visibility = 'hidden'
+        start_check = 1
+        event.stopPropagation()
+        for (i of boxes) {
+            createBox(i)
+        }
+        if (boxes.length <= 0){
+            box_id_counter = 0
+            for (let i = 0; i < 10; i++) {
+                createBox()
+            }
+        }
+        setInterval(timer, 10)
+        setInterval(updatebox, 10)
+        start_game_button = document.getElementById('startGame')
+        start_game_button.style.visibility = 'hidden'
+    }
+
+    async function load_boxes() {
+        boxes = await api_get()
+        console.log(boxes)
+    }
+
+    async function api_get() {
+        event.stopPropagation()
+        let resp = await axios.get('http://{{ HOSTNAME }}:8000/api/box/')
+        return resp.data
+    }
+
+    function api_wipe() {
+        event.stopPropagation()
+        for (box of boxes) {
             let box_element = document.getElementById(`${box.id}`)
-            axios.delete(`http://localhost:8000/api/box/${box.id}`)
+            axios.delete(`http://{{ HOSTNAME }}:8000/api/box/${box.id}`)
             box_element.parentNode.removeChild(box_element)
-            let box_index = boxes.indexOf(box)
-            boxes.splice(box_index, 1)
         }
+        boxes = []
+    }
 
-        function stopClick() {
+    async function api_post(box, box_element) {
+        let post_data = Object.assign({}, box)
+        delete post_data.id
+        let resp = await axios.post('http://{{ HOSTNAME }}:8000/api/box/', post_data)
+        box.id = resp.data.id
+        box_element.id = resp.data.id
+        box_element.innerHTML = box_element.id
+    }
 
+    async function submit_time(e) {
+        e.preventDefault()
+        let post_data = {
+            player_username: document.getElementById('username-input').value,
+            time_hundredths,
+            time_seconds,
+            time_minutes,
         }
-
-        function startGame() {
-            event.stopPropagation()
-            for (i of boxes) {
-                createBox(i)
-            }
-            if (boxes.length <= 0){
-                box_id_counter = 0
-                for (let i = 0; i < 15; i++) {
-                    createBox()
-                }
-            }
-            setInterval(updatebox, 10)
-            start_game_button = document.getElementById('startGame')
-            start_game_button.style.visibility = 'hidden'
+        if (post_data.player_username.length == 0) {
+            alert('Username field must not be blank')
+            return
         }
+        await axios.post('http://{{ HOSTNAME }}:8000/api/records/', post_data)
+        window.location = window.location
+    }
 
-        async function load_boxes() {
-            boxes = await api_get()
-            console.log(boxes)
-        }
+    function getRndInteger(min, max) {
+        return Math.floor(Math.random() * (max - min) ) + min;
+    }
 
-        async function api_get() {
-            event.stopPropagation()
-            let resp = await axios.get('http://localhost:8000/api/box/')
-            return resp.data
+    function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
         }
-
-        function api_wipe() {
-            event.stopPropagation()
-            for (box of boxes) {
-                let box_element = document.getElementById(`${box.id}`)
-                axios.delete(`http://localhost:8000/api/box/${box.id}`)
-                box_element.parentNode.removeChild(box_element)
-            }
-            boxes = []
-        }
-
-        async function api_post(box, box_element) {
-            let post_data = Object.assign({}, box)
-            delete post_data.id
-            let resp = await axios.post('http://localhost:8000/api/box/', post_data)
-            box.id = resp.data.id
-            box_element.id = resp.data.id
-            box_element.innerHTML = box_element.id
-        }
-
-        function getRndInteger(min, max) {
-            return Math.floor(Math.random() * (max - min) ) + min;
-        }
-
-        function getRandomColor() {
-            var letters = '0123456789ABCDEF';
-            var color = '#';
-            for (var i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-        }
-    </script>
+        return color;
+    }
+</script>
 </body>
 <style>
+    #modal {
+        visibility: hidden;
+        color: black;
+        height: 20%;
+        width: 30%;
+        border-radius: 1em;
+        border-width: 2px;
+        border-color: grey;
+        position: absolute;
+        border-style: solid;
+        place-items: center;
+        left: 35%;
+        top: 40%;
+        background-color: white;
+
+    }
+    #leader-board {
+        position: absolute;
+        top: 20%;
+        width: 200px;
+    }
+    .record-username {
+        padding-right: 25px;
+        margin-right: 0;
+    }
+    p {
+        color: black;
+    }
+    #timer {
+        font-size: 3.5em;
+    }
     div {
         color: white;
         font-weight: bold;
